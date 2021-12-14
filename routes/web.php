@@ -16,7 +16,9 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
+Route::get('/', function () {
+   return redirect()->route('index');
+});
 
 Route::get('index', [MainController::class, 'index'])->name('index');
 
@@ -28,3 +30,8 @@ Route::get('game/play/{game}/{round_number}', [GameController::class, 'play'])->
 Route::get('question/control/{result}/{round}', [GameController::class, 'control'])->name('question.control');
 Route::get('round/bank/{round}', [GameController::class, 'bank'])->name('round.bank');
 Route::get('round/stop/{round}', [GameController::class, 'roundStop'])->name('round.stop');
+Route::post('round/{round}/next', [GameController::class, 'roundNext'])->name('round.next');
+
+Route::get('test', function () {
+   dd(\App\Models\Game::find(1)->active_users);
+});

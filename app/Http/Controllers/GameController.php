@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\NextRoudResuest;
 use App\Models\Game;
 use App\Models\Question;
 use App\Models\Round;
@@ -28,9 +29,15 @@ class GameController extends Controller
     public function play(Request $request, Game $game, $round_number) {
         if (!($round = $game->rounds()->where('number', $round_number)->first())) {
             $round = $game->rounds()->create(['number' => $round_number]);
-            $round->current_user()->associate($game->users()->where('is_active', true)->first())->save();
+            $round->users()->attach($game->active_users);
+            if ($round_number > 1) {
+                $round->users()->syncWithoutDetaching([
+                    $game->rounds()->where('number', $round_number-1)->first()->strong->id => ['current' => true]
+                ]);
+            } else {
+                $round->users()->syncWithoutDetaching([$round->users()->first()->id => ['current' => true]]);
+            }
             $round->updateCurrentQuestion();
-            $round->users()->attach($game->users);
         }
 
         return view('game.play', [
@@ -42,13 +49,28 @@ class GameController extends Controller
 
 
     public function control($result, Round $round) {
+        $money = $round->getMoney();
+
         if ($result) {
-            $money = $round->getMoney();
             $round->update(['current_money' => $money]);
-            $round->users()->syncWithPivotValues([$round->current_user->id], ['money' => $money, 'right_answers' => $round->users()->where('users.id', $round->current_user->id)->first()->pivot->right_answers+1]);
+            if ($money == 50000) {
+                $round->update(['bank' => $money]);
+                return redirect()->route('round.stop', [
+                    'round' => $round->id
+                ]);
+            }
         } else {
+            $round->users()->syncWithoutDetaching([$round->current_user->id =>
+                [
+                    'money' => $round->current_user->pivot->money - $round->current_money
+                ]
+            ]);
             $round->downBank();
         }
+        $round->users()->syncWithoutDetaching([$round->current_user->id => [
+            'answers' => $round->current_user->pivot->answers+1,
+            'right_answers' => $round->current_user->pivot->right_answers + (int)$result
+        ]]);
         $round->updateCurrentUser();
         $round->updateCurrentQuestion();
 
@@ -57,13 +79,35 @@ class GameController extends Controller
 
     public function bank(Round $round) {
         $round->catchBank();
+        if ($round->bank == 50000) {
+            return redirect()->route('round.stop', [
+                'round' => $round->id
+            ]);
+        }
 
         return redirect()->route('game.play', ['game' => $round->game->id, 'round_number' => $round->number]);
     }
 
     public function roundStop(Round $round) {
-        $round->game->update(['bank' => $round->bank]);
+        $round->game->update(['bank' => $round->game->bank + $round->bank]);
+        return view('round.statistics', [
+            'game' => $round->game->id,
+            'round' => $round,
+            'users' => $round->setStrongLink(),
+            'strong' => $round->users()->where('strong', true)->first(),
+            'weak' => $round->users()->where('weak', true)->first()
+        ]);
 
-        return redirect()->route('game.play', ['game' => $round->game->id, 'round_number' => $round->number+1]);
+        //return redirect()->route('game.play', ['game' => $round->game->id, 'round_number' => $round->number+1]);
+    }
+
+    public function roundNext(NextRoudResuest $request, Round $round) {
+        $user = User::find($request->name);
+
+        $user->update(['is_active' => false]);
+
+        if ($round->game->active_users->count() > 2) {
+            return redirect()->route('game.play', ['game' => $round->game->id, 'round_number' => $round->number+1]);
+        }
     }
 }

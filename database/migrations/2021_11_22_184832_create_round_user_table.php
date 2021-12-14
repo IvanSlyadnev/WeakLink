@@ -22,6 +22,10 @@ class CreateRoundUserTable extends Migration
             $table->integer('money')->default(0);
             $table->integer('right_answers')->default(0);
             $table->integer('answers')->default(0);
+            $table->boolean('current')->default(0);
+            $table->boolean('strong')->default(0);
+            $table->boolean('weak')->default(0);
+            $table->float('coefficient')->default(0);
             $table->timestamps();
         });
     }

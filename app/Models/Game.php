@@ -30,14 +30,19 @@ class Game extends Model
     }
 
     public function getNextUser(User $user) {
-        foreach ($this->users as $key => $u) {
+        foreach ($this->active_users as $key => $u) {
             if ($u->id == $user->id) $index = $key+1;
         }
-        if ($index >= $this->users->count()-1) {
-            return $this->users()->first();
+
+        if ($index > $this->active_users->count()-1) {
+            return $this->active_users->first();
         }
 
-        return $this->users[$index];
+        return $this->active_users[$index];
+    }
+
+    public function getActiveUsersAttribute() {
+        return $this->users()->where('is_active', true)->get();
     }
 
 }

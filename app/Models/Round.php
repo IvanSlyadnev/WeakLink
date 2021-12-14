@@ -18,23 +18,7 @@ class Round extends Model
     }
 
     public function users() {
-        return $this->belongsToMany(User::class, 'round_user')->withPivot(['money', 'right_answers', 'answers']);
-    }
-
-    public function strong_link() {
-        return $this->belongsTo(User::class, 'strong_link');
-    }
-
-    public function weak_link() {
-        return $this->belongsTo(User::class, 'weak_link');
-    }
-
-    public function dead() {
-        return $this->belongsTo(User::class, 'dead');
-    }
-
-    public function current_user() {
-        return $this->belongsTo(User::class, 'current_user_id');
+        return $this->belongsToMany(User::class, 'round_user')->withPivot(['money', 'right_answers', 'answers', 'current', 'strong', 'weak', 'coefficient']);
     }
 
     public function current_question() {
@@ -79,18 +63,70 @@ class Round extends Model
     }
 
     public function catchBank() {
-        $this->update(['bank' => $this->current_money]);
+        $this->update(['bank' => $this->bank + $this->current_money]);
+        $this->users()->syncWithoutDetaching([$this->current_user->id =>
+            [
+                'money' => $this->current_user->pivot->money + $this->current_money
+            ]
+        ]);
         $this->downBank();
+        if ($this->bank >= 50000) {
+            $this->update(['bank' => 50000]);
+        }
     }
 
     public function updateCurrentUser () {
-        //dd($this->game->getNextUser($this->current_user));
-        $this->current_user()->associate($this->game->getNextUser($this->current_user))->save();
+        $this->users()->syncWithoutDetaching([
+            $this->current_user->id => ['current' => false],
+            $this->game->getNextUser($this->current_user)->id => ['current' => true]
+        ]);
     }
 
     public function updateCurrentQuestion() {
         $question = Question::whereNull('game_id')->inRandomOrder()->first();
         $question->update(['game_id' => $this->game->id]);
+
         $this->current_question()->associate($question)->save();
+    }
+
+    public function setStrongLink() {
+        foreach ($this->users as $user) {
+            if ($user->pivot->answers) {
+                $this->users()->syncWithoutDetaching([
+                    $user->id => ['coefficient' => (float)($user->pivot->right_answers/$user->pivot->answers)]
+                ]);
+            }
+        }
+
+        $this->users = $this->users()
+            ->orderByDesc('coefficient')
+            ->orderByDesc('right_answers')
+            ->orderByDesc('money')
+            ->get();
+
+
+        $this->users()->syncWithoutDetaching([
+           $this->users->first()->id => ['strong' => true],
+           $this->users->last()->id => ['weak' => true]
+        ]);
+
+        return $this->users->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'right_answers' => $user->pivot->right_answers,
+                'answers' => $user->pivot->answers,
+                'coefficient' => round($user->pivot->coefficient, 2) * 100,
+                'money' => $user->pivot->money
+            ];
+        });
+    }
+
+    public function getCurrentUserAttribute() {
+        return $this->users()->where('current', true)->first();
+    }
+
+    public function getStrongAttribute() {
+        return $this->users()->where('strong', true)->first();
     }
 }
