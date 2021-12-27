@@ -15,6 +15,7 @@ class GameController extends Controller
     public function start() {
 
         DB::statement('UPDATE questions SET game_id=null');
+        DB::statement('UPDATE users SET is_active=true');
         $users = User::where('is_active', true)->orderBy('name')->get();
         $game = Game::create();
 
@@ -106,8 +107,10 @@ class GameController extends Controller
 
         $user->update(['is_active' => false]);
 
-        if ($round->game->active_users->count() > 2) {
-            return redirect()->route('game.play', ['game' => $round->game->id, 'round_number' => $round->number+1]);
+        if ($round->game->users()->count()-1 == $round->number) {
+            return redirect()->route('game.final', ['game' => $round->game->id]);
         }
+
+        return redirect()->route('game.play', ['game' => $round->game->id, 'round_number' => $round->number+1]);
     }
 }
