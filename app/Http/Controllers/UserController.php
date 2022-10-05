@@ -39,7 +39,7 @@ class UserController extends Controller
     {
         User::create($request->only((new User())->getFillable()));
 
-        return redirect()->route('user.index')->with('success', 'Игрок создан');
+        return redirect()->route('users.index')->with('success', 'Игрок создан');
     }
 
     /**
@@ -65,7 +65,7 @@ class UserController extends Controller
         if (!$request->is_active) $request->merge(['is_active' => 0]);
         $user->update($request->only((new User())->getFillable()));
 
-        return redirect()->route('user.index')->with('success', 'Игрок обновлен');
+        return redirect()->route('users.index')->with('success', 'Игрок обновлен');
     }
 
     /**

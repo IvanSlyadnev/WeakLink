@@ -27,13 +27,7 @@
     </a>
 
     <br>
-    @if (count($game->users) > $round->number)
-        <a href="{{route('round.stop', ['round' => $round->id])}}">
-            <button class="btn btn-success">Завершить раунд</button>
-        </a>
-    @else
-        <a href="{{route('game.stop', ['round' => $round->id])}}">
-            <button class="btn btn-success">Завершить игру</button>
-        </a>
-    @endif
+    <a href="{{route('round.stop', ['round' => $round->id])}}">
+        <button class="btn btn-success">Завершить раунд</button>
+    </a>
 @endsection

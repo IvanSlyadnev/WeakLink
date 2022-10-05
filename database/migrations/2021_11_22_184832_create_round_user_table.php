@@ -16,9 +16,9 @@ class CreateRoundUserTable extends Migration
         Schema::create('round_user', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('user_id')->unsigned();
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->bigInteger('round_id')->unsigned();
-            $table->foreign('round_id')->references('id')->on('rounds');
+            $table->foreign('round_id')->references('id')->on('rounds')->onDelete('cascade');
             $table->integer('money')->default(0);
             $table->integer('right_answers')->default(0);
             $table->integer('answers')->default(0);

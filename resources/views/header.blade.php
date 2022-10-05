@@ -8,7 +8,7 @@
             <!-- Left Side Of Navbar -->
             <ul class="navbar-nav mr-auto">
                 <div class="">
-                    <a href="{{route('user.index')}}">
+                    <a href="{{route('users.index')}}">
                         <button class="btn btn">Пользователи</button>
                     </a>
                     <a href="{{route('question.index')}}">

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\NextRoudResuest;
+use App\Http\Requests\NextRoundRequest;
 use App\Models\Game;
 use App\Models\Question;
 use App\Models\Round;
@@ -13,9 +13,8 @@ use Illuminate\Support\Facades\DB;
 class GameController extends Controller
 {
     public function start() {
-
-        DB::statement('UPDATE questions SET game_id=null');
-        DB::statement('UPDATE users SET is_active=true');
+        Question::query()->update(['game_id' => null]);
+        User::query()->update(['is_active' => true]);
         $users = User::where('is_active', true)->orderBy('name')->get();
         $game = Game::create();
 
@@ -28,6 +27,9 @@ class GameController extends Controller
     }
 
     public function play(Request $request, Game $game, $round_number) {
+        if (!User::where('is_active', true)->exists()) {
+            return redirect()->route('users.index');
+        }
         if (!($round = $game->rounds()->where('number', $round_number)->first())) {
             $round = $game->rounds()->create(['number' => $round_number]);
             $round->users()->attach($game->active_users);
@@ -90,7 +92,7 @@ class GameController extends Controller
     }
 
     public function roundStop(Round $round) {
-        $round->game->update(['bank' => $round->game->bank + $round->bank]);
+        $round->game->update(['bank' => $round->game->bank + $round->getBank()]);
         return view('round.statistics', [
             'game' => $round->game->id,
             'round' => $round,
@@ -102,15 +104,23 @@ class GameController extends Controller
         //return redirect()->route('game.play', ['game' => $round->game->id, 'round_number' => $round->number+1]);
     }
 
-    public function roundNext(NextRoudResuest $request, Round $round) {
+    public function roundNext(NextRoundRequest $request, Round $round) {
         $user = User::find($request->name);
 
         $user->update(['is_active' => false]);
 
-        if ($round->game->users()->count()-1 == $round->number) {
+        if ($round->last) {
             return redirect()->route('game.final', ['game' => $round->game->id]);
         }
 
         return redirect()->route('game.play', ['game' => $round->game->id, 'round_number' => $round->number+1]);
+    }
+
+    public function finalRound(Game $game) {
+        $winner = $game->active_users->first();
+        $game->winner()->associate($winner)->save();
+        return view('game.final', [
+            'winner' => $winner
+        ]);
     }
 }

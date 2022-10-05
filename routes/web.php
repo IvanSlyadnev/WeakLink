@@ -22,16 +22,14 @@ Route::get('/', function () {
 
 Route::get('index', [MainController::class, 'index'])->name('index');
 
-Route::resource('user', UserController::class)->except('show');
+Route::resource('users', UserController::class)->except('show');
 Route::resource('question', QuestionController::class);
 
 Route::get('game/start', [GameController::class, 'start'])->name('game.start');
 Route::get('game/play/{game}/{round_number}', [GameController::class, 'play'])->name('game.play');
+Route::get('game/{game}/finalRound', [GameController::class, 'finalRound'])->name('game.final');
+
 Route::get('question/control/{result}/{round}', [GameController::class, 'control'])->name('question.control');
 Route::get('round/bank/{round}', [GameController::class, 'bank'])->name('round.bank');
 Route::get('round/stop/{round}', [GameController::class, 'roundStop'])->name('round.stop');
 Route::post('round/{round}/next', [GameController::class, 'roundNext'])->name('round.next');
-
-Route::get('test', function () {
-   dd(\App\Models\Game::find(1)->active_users);
-});

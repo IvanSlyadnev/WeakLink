@@ -129,4 +129,12 @@ class Round extends Model
     public function getStrongAttribute() {
         return $this->users()->where('strong', true)->first();
     }
+
+    public function getBank() {
+        return $this->last ? $this->bank * 2 : $this->bank;
+    }
+
+    public function getLastAttribute() {
+        return $this->number == $this->game->users()->count()-1;
+    }
 }

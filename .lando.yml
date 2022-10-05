@@ -1,0 +1,31 @@
+name: weaklink
+recipe: laravel
+config:
+  php: '8.0'
+  composer_version: '2.2.6'
+  via: nginx
+  webroot: public
+  database: mysql:5.7
+  cache: redis
+  xdebug: true
+services:
+  myservice:
+    type: php
+    build_as_root:
+      - curl -sL https://deb.nodesource.com/setup_12.x | bash -
+      - apt-get install -y nodejs
+  redis:
+    type: redis
+    portforward: true
+  pma:
+    type: phpmyadmin
+    hosts:
+      - database
+tooling:
+  node:
+    service: myservice
+  npm:
+    service: myservice
+proxy:
+  pma:
+    - pma.lndo.site
