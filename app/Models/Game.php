@@ -45,4 +45,20 @@ class Game extends Model
         return $this->users()->where('is_active', true)->get();
     }
 
+    public function getStatistics() {
+        return $this->users->map(function ($user) {
+            $rounds = $user->rounds()->where('game_id', $this->id);
+            foreach (User::getStatisticable() as $field) {
+                $user[$field] = $rounds->sum($field);
+            }
+            $user['rounds'] = $rounds->count();
+            $user['coefficient'] = round($rounds->sum('right_answers')/$rounds->sum('answers'), 2) * 100;
+            return $user;
+        })->sortBy([
+            fn ($a, $b) => $b['coefficient'] <=> $a['coefficient'],
+            fn ($a, $b) => $b['money'] <=> $a['money'],
+            fn ($a, $b) => $b['coefficient'] <=> $a['coefficient']
+        ]);
+    }
+
 }

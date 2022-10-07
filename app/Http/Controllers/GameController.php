@@ -26,7 +26,7 @@ class GameController extends Controller
         ]);
     }
 
-    public function play(Request $request, Game $game, $round_number) {
+    public function play(Game $game, $round_number) {
         if (!User::where('is_active', true)->exists()) {
             return redirect()->route('users.index');
         }
@@ -37,8 +37,6 @@ class GameController extends Controller
                 $round->users()->syncWithoutDetaching([
                     $game->rounds()->where('number', $round_number-1)->first()->strong->id => ['current' => true]
                 ]);
-            } else {
-                $round->users()->syncWithoutDetaching([$round->users()->first()->id => ['current' => true]]);
             }
             $round->updateCurrentQuestion();
         }
@@ -92,9 +90,12 @@ class GameController extends Controller
     }
 
     public function roundStop(Round $round) {
-        $round->game->update(['bank' => $round->game->bank + $round->getBank()]);
+        if (!$round->finished) {
+            $round->game->update(['bank' => $round->game->bank + $round->getBank()]);
+            $round->update(['finished' => true]);
+        }
+
         return view('round.statistics', [
-            'game' => $round->game->id,
             'round' => $round,
             'users' => $round->setStrongLink(),
             'strong' => $round->users()->where('strong', true)->first(),
@@ -121,6 +122,25 @@ class GameController extends Controller
         $game->winner()->associate($winner)->save();
         return view('game.final', [
             'winner' => $winner
+        ]);
+    }
+
+    public function continueGame(Game $game) {
+        $round = $game->rounds()->latest()->first();
+        if ($round->finished) {
+            return redirect()->route('round.stop', [
+                'round' => $round
+            ]);
+        }
+        return redirect()->route('game.play', [
+            'game' => $game->id,
+            'round_number' => $game->rounds()->latest('number')->first()->number
+        ]);
+    }
+
+    public function statistics(Game $game) {
+        return view('game.statistics', [
+            'game' => $game
         ]);
     }
 }

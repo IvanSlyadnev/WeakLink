@@ -21,6 +21,12 @@ class User extends Authenticatable
         'is_active'
     ];
 
+    public static function getStatisticable() {
+        return [
+            'answers', 'right_answers', 'money'
+        ];
+    }
+
     protected $casts = [
         'is_active' => 'boolean'
     ];

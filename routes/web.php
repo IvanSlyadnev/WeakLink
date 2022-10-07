@@ -28,8 +28,10 @@ Route::resource('question', QuestionController::class);
 Route::get('game/start', [GameController::class, 'start'])->name('game.start');
 Route::get('game/play/{game}/{round_number}', [GameController::class, 'play'])->name('game.play');
 Route::get('game/{game}/finalRound', [GameController::class, 'finalRound'])->name('game.final');
+Route::get('game/continue/{game}', [GameController::class, 'continueGame'])->name('game.continue');
+Route::get('game/{game}/statistics', [GameController::class, 'statistics'])->name('game.statistics');
 
 Route::get('question/control/{result}/{round}', [GameController::class, 'control'])->name('question.control');
-Route::get('round/bank/{round}', [GameController::class, 'bank'])->name('round.bank');
-Route::get('round/stop/{round}', [GameController::class, 'roundStop'])->name('round.stop');
+Route::get('round/{round}/bank', [GameController::class, 'bank'])->name('round.bank');
+Route::get('round/{round}/stop', [GameController::class, 'roundStop'])->name('round.stop');
 Route::post('round/{round}/next', [GameController::class, 'roundNext'])->name('round.next');

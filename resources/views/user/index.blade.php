@@ -16,7 +16,7 @@
         </tr>
         </thead>
         <tbody>
-        @foreach($users as $user)
+        @foreach($users->sortBy('name') as $user)
             <tr>
                 <td>{{$user->name}}</td>
                 <td>@if ($user->is_active) Да @else Нет @endif</td>

@@ -10,7 +10,7 @@ class Round extends Model
     use HasFactory;
 
     protected $fillable = [
-        'number', 'time', 'seria', 'bank', 'current_money'
+        'number', 'time', 'seria', 'bank', 'current_money', 'finished'
     ];
 
     public function game() {
@@ -123,7 +123,12 @@ class Round extends Model
     }
 
     public function getCurrentUserAttribute() {
-        return $this->users()->where('current', true)->first();
+        if ($this->number > 1) {
+            if ($user = $this->users()->where('is_active', true)->where('current', true)->first()) {
+                return $user;
+            }
+        }
+        return $this->users()->where('is_active', true)->orderBy('answers')->orderBy('name')->first();
     }
 
     public function getStrongAttribute() {

@@ -14,6 +14,11 @@
                     <a href="{{route('question.index')}}">
                         <button class="btn btn">Вопросы</button>
                     </a>
+                    @if($game = \App\Models\Game::whereNull('winner_id')->first())
+                        <a href="{{route('game.statistics', ['game' => $game->id])}}">
+                            <button class="btn btn">Статстика игры</button>
+                        </a>
+                    @endif
                 </div>
             </ul>
 
