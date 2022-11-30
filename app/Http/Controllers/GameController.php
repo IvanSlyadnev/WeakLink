@@ -52,6 +52,11 @@ class GameController extends Controller
     public function control($result, Round $round) {
         $money = $round->getMoney();
 
+        $round->users()->syncWithoutDetaching([$round->current_user->id => [
+            'answers' => $round->current_user->pivot->answers+1,
+            'right_answers' => $round->current_user->pivot->right_answers + (int)$result
+        ]]);
+
         if ($result) {
             $round->update(['current_money' => $money]);
             if ($money == 50000) {
@@ -68,10 +73,6 @@ class GameController extends Controller
             ]);
             $round->downBank();
         }
-        $round->users()->syncWithoutDetaching([$round->current_user->id => [
-            'answers' => $round->current_user->pivot->answers+1,
-            'right_answers' => $round->current_user->pivot->right_answers + (int)$result
-        ]]);
         $round->updateCurrentUser();
         $round->updateCurrentQuestion();
 
@@ -80,7 +81,12 @@ class GameController extends Controller
 
     public function bank(Round $round) {
         $round->catchBank();
-        if ($round->bank == 50000) {
+        $count = $round->game->users()->where('is_active', true)->count();
+        $value = 50000;
+        if ($count > 8) {
+            $value = $value+ ($count - 8) * 1000;
+        }
+        if ($round->bank == $value) {
             return redirect()->route('round.stop', [
                 'round' => $round->id
             ]);

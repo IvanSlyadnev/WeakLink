@@ -70,8 +70,14 @@ class Round extends Model
             ]
         ]);
         $this->downBank();
-        if ($this->bank >= 50000) {
-            $this->update(['bank' => 50000]);
+        $count = $this->game->users()->where('is_active', true)->count();
+        $value = 50000;
+        if ($count > 8) {
+            $value = $value + ($count - 8) * 10000;
+        }
+
+        if ($this->bank >= $value) {
+            $this->update(['bank' => $value]);
         }
     }
 
