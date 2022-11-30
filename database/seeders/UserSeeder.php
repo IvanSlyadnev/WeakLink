@@ -15,7 +15,7 @@ class UserSeeder extends Seeder
     public function run()
     {
         $names = [
-            'Иван', 'Влад', 'Аля', 'Огульник'
+            'Влад', 'Аля', 'Огульник', 'Аня', 'Кристина', 'Максим', 'Настя', 'Рома'
         ];
 
         foreach ($names as $name) {
