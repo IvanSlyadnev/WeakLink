@@ -55,7 +55,7 @@ class Game extends Model
             $user['coefficient'] = round($rounds->sum('right_answers')/$rounds->sum('answers'), 2) * 100;
             return $user;
         })->sortBy([
-            fn ($a, $b) => $b['coefficient'] <=> $a['coefficient'],
+            fn ($a, $b) => $b['right_answers'] <=> $a['right_answers'],
             fn ($a, $b) => $b['money'] <=> $a['money'],
             fn ($a, $b) => $b['coefficient'] <=> $a['coefficient']
         ]);
