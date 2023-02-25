@@ -55,6 +55,9 @@ class Round extends Model
                 return 50000;
                 break;
         }
+        if ($this->seria > 8) {
+            return 5000;
+        }
     }
 
     public function downBank() {

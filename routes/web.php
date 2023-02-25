@@ -26,6 +26,7 @@ Route::resource('users', UserController::class)->except('show');
 Route::resource('question', QuestionController::class);
 
 Route::get('game/start', [GameController::class, 'start'])->name('game.start');
+Route::post('game/{game}/stop', [GameController::class, 'stop'])->name('game.stop');
 Route::get('game/play/{game}/{round_number}', [GameController::class, 'play'])->name('game.play');
 Route::get('game/{game}/finalRound', [GameController::class, 'finalRound'])->name('game.final');
 Route::get('game/continue/{game}', [GameController::class, 'continueGame'])->name('game.continue');

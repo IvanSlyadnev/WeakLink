@@ -58,6 +58,7 @@ class GameController extends Controller
         ]]);
 
         if ($result) {
+
             $round->update(['current_money' => $money]);
             if ($money == 50000) {
                 $round->update(['bank' => $money]);
@@ -148,5 +149,10 @@ class GameController extends Controller
         return view('game.statistics', [
             'game' => $game
         ]);
+    }
+
+    public function stop(Game $game) {
+        $game->delete();
+        return redirect()->back();
     }
 }
